@@ -1,28 +1,48 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config'; // Add this import
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreaturesModule } from './creatures/creatures.module';
-import { env } from 'process';
 
-// When I used the properties from the process object, It kept giving me an error
-// PLEASE DON'T DO THIS IN PRODUCTION AS IT IS COMPLETELY INSECURE 
-// AND WILL LIKELY HAVE YOUR DATABASE DROPPED.
-
+//  Vulnerability has been fixed, now we can rest easy until someone
+//  decides to do an SQL injection.
 @Module({
-  imports: [TypeOrmModule.forRoot({
-    type: 'postgres',
-    host:  'roundhouse.proxy.rlwy.net',
-    port: 28873,
-    username: 'postgres',
-    password: 'WIaJyQXKQYFkzcaRgZYCQkCmtopIUpqZ',
-    database: 'railway',   
-    entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: true,
-    url: env.DATABASE_URL,
-    logging: false
-  }), CreaturesModule],
+  imports: [
+    ConfigModule.forRoot(), // Add this line
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.PGHOST,
+      port: parseInt(process.env.PGPORT),
+      username: process.env.PGUSERNAME,
+      password: process.env.PGPASSWORD,
+      database: process.env.PGDATABASE,
+      entities: ['dist/**/*.entity{.ts,.js}'],
+      synchronize: true,
+      url: process.env.DATABASE_URL,
+      logging: false
+    }),
+    CreaturesModule
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
 export class AppModule {}
+// })
+// export class AppModule {}
+//   imports: [TypeOrmModule.forRoot({
+//     type: 'postgres',
+//     host: process.env.PGHOST,
+//     port: parseInt(process.env.PGPORT),
+//     username: process.env.PGUSERNAME,
+//     password: process.env.PGPASSWORD,
+//     database: process.env.PGDATABASE,
+//     entities: ['dist/**/*.entity{.ts,.js}'],
+//     synchronize: true,
+//     url: process.env.DATABASE_URL,
+//     logging: false
+//   }), CreaturesModule],
+//   controllers: [AppController],
+//   providers: [AppService],
+// })
+// export class AppModule {}
